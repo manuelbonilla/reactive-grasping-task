@@ -1,0 +1,3 @@
+[submodule "glove_acquisition"]
+	path = glove_acquisition
+	url = git@github.com:alextoind/glove-acquisition.git
