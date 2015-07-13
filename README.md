@@ -3,11 +3,11 @@ This package provides two synchronized nodes which implement a *reactive graspin
 
 ![rviz](media/rviz.png)
 
-## Install
+## Installation
 
-1. Follow the instruction in the README.md at CentroEPiaggio@3b74d1878909c8790d4946acbbc5628675ec70fc to properly clone the *vito_robot* package in your catkin workspace.
+1. Follow the instruction in the README.md at CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc to properly clone the *vito_robot* package in your catkin workspace.
 2. Compile it through `catikin_make` and check if everything works as expected (i.e. execute `roslaunch vito_description display.launch`).
-3. Clone the *reactive_grasping* package in your catkin workspace and compile everything (again with `catikin_make`).
+3. Clone the *reactive_grasping* package (use the `--recursive` flag) in your catkin workspace and compile everything (again with `catikin_make`).
 
 ## Usage
 
@@ -18,7 +18,7 @@ This package provides two synchronized nodes which implement a *reactive graspin
 
 ## Info and Warnings
 
-- This package is not standalone: the Centro E. Piaggio *vito_robot* package (commit CentroEPiaggio@3b74d1878909c8790d4946acbbc5628675ec70fc) has to be compiled on your machine.
+- This package is not standalone: the Centro E. Piaggio *vito_robot* package (commit CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc) has to be compiled on your machine.
 - The *ReactiveGraspingDetection* class uses linux-specific commands, e.g. `system("mkdir -p ...")`. 
 - This code has been developed for ROS Indigo on ubuntu 14.04. No warranty for other distributions.
 
