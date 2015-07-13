@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: reactive_grasping_description
+    relative_path: robot/vito.urdf
+  SRDF:
+    relative_path: config/vito.srdf
+  CONFIG:
+    generated_timestamp: 1435419573

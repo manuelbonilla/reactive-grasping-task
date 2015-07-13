@@ -1,0 +1,14 @@
+# Define the goal
+string info
+geometry_msgs/Pose target
+---
+# Define the result
+string info
+float64 final_grasp_value
+geometry_msgs/PoseStamped final_pose
+---
+# Define a feedback message
+string info
+float64 distance_to_the_goal
+float64 grasp_value
+sensor_msgs/JointState joint_state
