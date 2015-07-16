@@ -50,6 +50,7 @@
 #define DEFAULT_ARM_DISTANCE_THRESHOLD 0.001
 #define DEFAULT_HAND_VELOCITY_THRESHOLD 0.05
 #define DEFAULT_HAND_DISTANCE_THRESHOLD 0.005
+#define DEFAULT_DETECT_CONTACT_DELAY 1  // wait for a small amount of time when target pose is reached (oscillations)
 #define DEFAULT_VERBOSE_MODE true
 #define DEFAULT_VERY_VERBOSE_MODE false
 
@@ -93,6 +94,7 @@ class ReactiveGraspingMotion {
   double arm_distance_threshold_;
   double hand_velocity_threshold_;
   double hand_distance_threshold_;
+  double detect_contact_delay_;
 
   // verbosity control variables
   bool verbose_mode_;

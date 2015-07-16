@@ -5,7 +5,7 @@
     <arg name="use_rviz" default="true"/>
     <arg name="use_joint_state_publisher" default="true"/>
     <arg name="load_moveit" default="true"/>
-    <arg name="use_calibration_package" default="true"/>
+    <!-- <arg name="use_calibration_package" default="true"/> -->
     <arg name="use_grasp_estimator" default="true"/>
 
     <!-- configure whether the real hardware is enabled or not -->
@@ -105,7 +105,10 @@
     <!-- "wrist_measures_fixed_frame" is rotated by -90 degrees on y axis with respect to "right_hand_palm_link" frame -->
     <node pkg="tf" type="static_transform_publisher" name="wrist_measures_fixed_frame_broadcaster" args="0 0 0 0 -0.707107 0 0.707107 right_hand_palm_link wrist_measures_fixed_frame 100" />
 
-    <include file="$(find reactive_grasping)/launch/task_core.launch"/>
+    <!-- if a real robot it is used, the 'task_core' has to be started manually after all the initialization -->
+    <group if="$(arg use_robot_sim)">
+      <include file="$(find reactive_grasping)/launch/task_core.launch"/>
+    </group>
 
     <!-- #### components -->
 

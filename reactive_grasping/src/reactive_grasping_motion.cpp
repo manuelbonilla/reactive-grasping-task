@@ -35,6 +35,7 @@ ReactiveGraspingMotion::ReactiveGraspingMotion() {
   private_node_handle_->param("arm_distance_threshold", arm_distance_threshold_, DEFAULT_ARM_DISTANCE_THRESHOLD);
   private_node_handle_->param("hand_velocity_threshold", hand_velocity_threshold_, DEFAULT_HAND_VELOCITY_THRESHOLD);
   private_node_handle_->param("hand_distance_threshold", hand_distance_threshold_, DEFAULT_HAND_DISTANCE_THRESHOLD);
+  private_node_handle_->param("detect_contact_delay", detect_contact_delay_, (double)DEFAULT_DELAY_THRESHOLD);
 
   hand_grasped_ = 0.0;
   homing_ = false;
@@ -192,6 +193,8 @@ void ReactiveGraspingMotion::generateAndPublishResult(std::string status, const 
   result.info = status;
   result.final_grasp_value = std::round(100*std::abs(hand_synergy_joint_state.position.at(0)))/100;
   result.final_pose = group_->getCurrentPose();
+
+  ros::Duration(detect_contact_delay_).sleep();  // due to kuka and hand oscillations (SoftHand dependent)
   server_->setSucceeded(result);
 }
 

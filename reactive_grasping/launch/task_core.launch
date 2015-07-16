@@ -14,9 +14,11 @@
 
   <node pkg="reactive_grasping" type="detection" name="detection" output="screen" cwd="ROS_HOME">
     <param name="verbose_mode" type="bool" value="$(arg verbose_mode_detection)" />
+    <param name="contact_threshold" type="double" value="4096" />
   </node>
 
   <node pkg="reactive_grasping" type="motion" name="motion" output="screen" cwd="ROS_HOME">
     <param name="verbose_mode" type="bool" value="$(arg verbose_mode_motion)" />
+    <param name="detect_contact_delay" type="double" value="1.5" />
   </node>
 </launch>
