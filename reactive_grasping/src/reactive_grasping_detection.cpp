@@ -66,9 +66,9 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   std::string command = "mkdir -p " + log_file_base_path_;
   system(command.c_str());
   // opens log files
-  log_file_accelerations_raw_.open(log_file_base_path_ + date_time_ + log_file_name_raw_ + ".dat");
-  log_file_accelerations_filt_.open(log_file_base_path_ + date_time_ + log_file_name_filt_ + ".dat");
-  log_file_accelerations_map_.open(log_file_base_path_ + date_time_ + log_file_name_map_ + ".dat");
+  log_file_accelerations_raw_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_raw_ + ".dat");
+  log_file_accelerations_filt_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_filt_ + ".dat");
+  log_file_accelerations_map_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_map_ + ".dat");
 
   // statistics variables initialization
   start_time_ = ros::Time::now();
@@ -108,15 +108,15 @@ ReactiveGraspingDetection::~ReactiveGraspingDetection() {
 
   // closes log files if previously opened
   if (log_file_accelerations_raw_.is_open()) {
-    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + log_file_name_raw_ + ".dat\n";
+    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_raw_ + ".dat\n";
     log_file_accelerations_raw_.close();
   }
   if (log_file_accelerations_filt_.is_open()) {
-    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + log_file_name_filt_ + ".dat\n";
+    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_filt_ + ".dat\n";
     log_file_accelerations_filt_.close();
   }
   if (log_file_accelerations_map_.is_open()) {
-    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + log_file_name_map_ + ".dat\n";
+    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_map_ + ".dat\n";
     log_file_accelerations_map_.close();
   }
   std::cout << std::endl;
@@ -150,7 +150,8 @@ void ReactiveGraspingDetection::actionDoneCallback(const actionlib::SimpleClient
 void ReactiveGraspingDetection::actionFeedbackCallback(const reactive_grasping::MotionFeedbackConstPtr &feedback) {
   if (verbose_mode_) {
     ROS_DEBUG_STREAM("[Detection::actionFeedbackCallback] Feedback info: " << feedback->info);
-    ROS_DEBUG_STREAM("[Detection::actionFeedbackCallback] Feedback dist: " << std::fixed << feedback->distance_to_the_goal);
+    ROS_DEBUG_STREAM("[Detection::actionFeedbackCallback] Feedback dist: " << std::fixed
+                     << feedback->distance_to_the_goal);
     ROS_DEBUG_STREAM("[Detection::actionFeedbackCallback] Feedback grasp: " << feedback->grasp_value);
 
     if (very_verbose_mode_) {
