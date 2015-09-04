@@ -37,7 +37,7 @@ This package provides two synchronized nodes which implement a *reactive graspin
 9. If you touch the Glove with an object, the KUKA robot should perform a grasp primitive to grab it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
 
 ## Calibration
-The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *calibration*. Touch the glove several times and interactively choose which acceleration map is is satisfactory (use the MATLAB script *visualize_acceleration_maps.m* to help you visualizing the maps). The chosen acceleration maps has to be searched in the *&#42;_accelerations_map.dat* log file and copied (in the proper position) in the *comparison_dataset.yaml* configuration file.
+The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *calibration*. Touch the glove several times and interactively choose which acceleration map is is satisfactory (use the MATLAB script *visualize_acceleration_maps.m* to help you visualizing the maps). The chosen acceleration maps has to be searched in the *&#42;_accelerations_map.dat* log file and copied (in the proper position) in the *comparison_dataset.yaml* configuration file. It has to be notice that the robot won't perform the grasp primitive while calibrating.
 
 ## Info and Warnings
 
