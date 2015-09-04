@@ -25,6 +25,8 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   // retrieves settings from ROS params if specified
   private_node_handle_->param("verbose_mode", verbose_mode_, DEFAULT_VERBOSE_MODE);
   private_node_handle_->param("very_verbose_mode", very_verbose_mode_, DEFAULT_VERY_VERBOSE_MODE);
+  private_node_handle_->param("only_detection", only_detection_, DEFAULT_ONLY_DETECTION);
+  private_node_handle_->param("calibration", calibration_, DEFAULT_CALIBRATION);
   private_node_handle_->param("glove_topic_name", glove_topic_name_, std::string(DEFAULT_GLOVE_TOPIC_NAME));
   private_node_handle_->param("accel_map_topic_name", accel_map_topic_name_, std::string(DEFAULT_ACCEL_MAP_TOPIC_NAME));
   private_node_handle_->param("topic_queue_length", topic_queue_length_, DEFAULT_TOPIC_QUEUE_LENGTH);
@@ -32,9 +34,9 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   private_node_handle_->param("filter_coeff_b", filter_coeff_b_, b);
   private_node_handle_->param("num_imus", num_imus_, DEFAULT_NUM_IMUS);
   private_node_handle_->param("gravity_value", gravity_value_, DEFAULT_GRAVITY_VALUE);
-  private_node_handle_->param("contact_threshold", contact_threshold_, DEFAULT_CONTACT_THRESHOLD);
+  private_node_handle_->param("contact_threshold", contact_threshold_, (double)DEFAULT_CONTACT_THRESHOLD);
   private_node_handle_->param("window_size", window_size_, DEFAULT_WINDOW_SIZE);
-  private_node_handle_->param("tails_scale_factor", tails_scale_factor_, DEFAULT_TAILS_SCALE_FACTOR);
+  private_node_handle_->param("tails_scale_factor", tails_scale_factor_, (double)DEFAULT_TAILS_SCALE_FACTOR);
   private_node_handle_->param("delay_threshold", delay_threshold_, (double)DEFAULT_DELAY_THRESHOLD);
   private_node_handle_->param("action_server", action_server_, std::string(DEFAULT_ACTION_SERVER));
   private_node_handle_->param("log_file_base_path", log_file_base_path_, std::string(DEFAULT_LOG_FILE_BASE_PATH));
@@ -481,9 +483,28 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
         ROS_ERROR_STREAM("[Detection::processData] Motion Action Server not connected...");
         return;
       }
-      // flags the detection
-      contact_detected_ = true;
-      generateAndSendGoal("sending target pose", approaching_direction);
+      if (!only_detection_ || !calibration_) {
+        // flags the detection
+        contact_detected_ = true;
+        generateAndSendGoal("sending target pose", approaching_direction);
+      }
+
+      if (calibration_) {
+        std::string answer = "";
+        ROS_INFO_STREAM("[Detection::processData] Calibration: detection on '" << approaching_direction << "'");
+        ROS_INFO_STREAM("[Detection::processData] Calibration: do you want to store the current acceleration map?");
+        std::cin >> answer;
+        if (answer == "yes" || answer == "y" || answer == "Yes" || answer == "Y") {
+          // highlight the acceleration maps to be stored in 'log_file_accelerations_map_'
+          log_file_accelerations_map_ << "*** To be copied in the current 'comparison_dataset' ***" << "\n";
+          ROS_INFO_STREAM("[Detection::processData] Calibration: acceleration map marked in the log file.");
+        }
+        else {
+          ROS_WARN_STREAM("[Detection::processData] Calibration: acceleration map rejected (not marked in the log).");
+        }
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      }
 
       std_msgs::Float64MultiArray accelerations_map;
       accelerations_map.data = accelerations_normalized;

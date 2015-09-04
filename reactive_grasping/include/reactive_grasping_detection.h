@@ -52,6 +52,8 @@
 #define DEFAULT_ACTION_SERVER "pose_action_server"
 #define DEFAULT_VERBOSE_MODE true
 #define DEFAULT_VERY_VERBOSE_MODE false
+#define DEFAULT_ONLY_DETECTION false
+#define DEFAULT_CALIBRATION false
 #define DEFAULT_LOG_FILE_BASE_PATH "logs/"
 #define DEFAULT_LOG_FILE_NAME_RAW "accelerations_raw"
 #define DEFAULT_LOG_FILE_NAME_FILT "accelerations_filtered"
@@ -88,6 +90,8 @@ class ReactiveGraspingDetection {
   double contact_threshold_;
   double tails_scale_factor_;
   double delay_threshold_;
+  bool only_detection_;
+  bool calibration_;
   std::vector<double> filter_coeff_a_;
   std::vector<double> filter_coeff_b_;
 

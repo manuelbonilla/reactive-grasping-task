@@ -1,3 +1,5 @@
+# Please, copy in this file the data set with the current window size (or create a new comparison data set)
+
 # Cross-Correlation comparison data set (map from 'approaching_directions' to 'comparison_acceleration_samples' and relative 'target_pose')
 # - samples: 450 samples (30 samples x 5 IMUs x 3 directions) sorted like this [x_thumb y_thumb z_thumb | x_index y_index z_index | ... | x_little y_little z_little] (each element is a 30 samples vector storing info on the contact peaks (filtered accelerations))
 # - position: target pose x, y and z (expressed in meters)

@@ -28,14 +28,14 @@ ReactiveGraspingMotion::ReactiveGraspingMotion() {
   private_node_handle_->param("frame_base", frame_base_, std::string(DEFAULT_FRAME_BASE));
   private_node_handle_->param("frame_ee_kuka", frame_ee_kuka_, std::string(DEFAULT_FRAME_EE_KUKA));
   private_node_handle_->param("frame_ee_glove", frame_ee_glove_, std::string(DEFAULT_FRAME_EE_GLOVE));
-  private_node_handle_->param("time_for_grasp", time_for_grasp_, DEFAULT_TIME_FOR_GRASP);
+  private_node_handle_->param("time_for_grasp", time_for_grasp_, (double)DEFAULT_TIME_FOR_GRASP);
   private_node_handle_->param("verbose_mode", verbose_mode_, DEFAULT_VERBOSE_MODE);
   private_node_handle_->param("very_verbose_mode", very_verbose_mode_, DEFAULT_VERY_VERBOSE_MODE);
   private_node_handle_->param("arm_velocity_threshold", arm_velocity_threshold_, DEFAULT_ARM_VELOCITY_THRESHOLD);
   private_node_handle_->param("arm_distance_threshold", arm_distance_threshold_, DEFAULT_ARM_DISTANCE_THRESHOLD);
   private_node_handle_->param("hand_velocity_threshold", hand_velocity_threshold_, DEFAULT_HAND_VELOCITY_THRESHOLD);
   private_node_handle_->param("hand_distance_threshold", hand_distance_threshold_, DEFAULT_HAND_DISTANCE_THRESHOLD);
-  private_node_handle_->param("detect_contact_delay", detect_contact_delay_, (double)DEFAULT_DELAY_THRESHOLD);
+  private_node_handle_->param("detect_contact_delay", detect_contact_delay_, (double)DEFAULT_DETECT_CONTACT_DELAY);
 
   hand_grasped_ = 0.0;
   homing_ = false;
