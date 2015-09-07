@@ -1,21 +1,14 @@
-% required MATLAB r2015a and the Robotics System Toolbox
+% Plots Acceleration map
 
-window_size = 30;
+function [] = plot_acceleration_map(data)
+  window_size = length(data)/15;
 
-rosshutdown;
-rosinit;
-map_sub = rossubscriber('accel_map_topic','std_msgs/Float64MultiArray');
-
-while 1
-  message = receive(map_sub);
-  % showdetails(message);
-  
   % acceleration map plot
-  plot_data((1:15*window_size)', message.Data)
+  plot_data((1:length(data))', data)
   xlabel('Samples', 'Interpreter', 'latex', 'FontSize', 14);
-  ylabel('Normalized Acceleration [g]', 'Interpreter', 'latex', 'FontSize', 14);
+  ylabel('Acceleration [g]', 'Interpreter', 'latex', 'FontSize', 14);
   hold on;
-  plot([1*window_size 1*window_size], [-4 4], '--', 'Color', [0.929 0.694 0.125])
+  plot([window_size window_size], [-4 4], '--', 'Color', [0.929 0.694 0.125])
   plot([2*window_size 2*window_size], [-4 4], '--', 'Color', [0.929 0.694 0.125])
   plot([3*window_size 3*window_size], [-4 4], '--', 'Color', [0.41 0.43 0.45])
   plot([4*window_size 4*window_size], [-4 4], '--', 'Color', [0.929 0.694 0.125])

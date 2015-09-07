@@ -466,10 +466,20 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
   filterAccelerations();
   updateLogFiles(acquisition_time);
 
+  if (only_detection_ || calibration_) {
+    if (skip_samples_ == 0) {
+      contact_detected_ = false;
+    }
+    else {
+      skip_samples_--;
+    }
+  }
+
   // TODO: otherwise checks the trend of contact vector for each IMU: / \ \ _ \ >> probably direction is \ ?
   if (!contact_detected_) {
     int imu_id = detectContact();
     if (imu_id >= 0) {
+      contact_detected_ = true;
       ROS_INFO_STREAM("[Detection::processData] Contact Detected on IMU " << imu_id);
       // concatenates the samples in a vector of length equals 3 x 'num_imus_' x 'window_size_'
       std::vector<double> accelerations_concatenated = toVector(accelerations_filt_);
@@ -483,36 +493,41 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
         ROS_ERROR_STREAM("[Detection::processData] Motion Action Server not connected...");
         return;
       }
-      if (!only_detection_ || !calibration_) {
-        // flags the detection
-        contact_detected_ = true;
-        generateAndSendGoal("sending target pose", approaching_direction);
-      }
 
-      if (calibration_) {
-        std::string answer = "";
-        ROS_INFO_STREAM("[Detection::processData] Calibration: detection on '" << approaching_direction << "'");
-        ROS_INFO_STREAM("[Detection::processData] Calibration: do you want to store the current acceleration map?");
-        std::cin >> answer;
-        if (answer == "yes" || answer == "y" || answer == "Yes" || answer == "Y") {
-          // highlight the acceleration maps to be stored in 'log_file_accelerations_map_'
-          log_file_accelerations_map_ << "*** To be copied in the current 'comparison_dataset' ***" << "\n";
-          ROS_INFO_STREAM("[Detection::processData] Calibration: acceleration map marked in the log file.");
-        }
-        else {
-          ROS_WARN_STREAM("[Detection::processData] Calibration: acceleration map rejected (not marked in the log).");
-        }
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      if (!only_detection_ && !calibration_) {
+        // flags the detection
+        generateAndSendGoal("sending target pose", approaching_direction);
       }
 
       std_msgs::Float64MultiArray accelerations_map;
       accelerations_map.data = accelerations_normalized;
       accel_map_publisher_.publish(accelerations_map);
+      
+      if (calibration_) {
+        std::string answer = "";
+        ROS_INFO_STREAM("[Detection::processData] Calibration: insert the current approaching direction ('n' to skip)");
+        std::cin >> answer;
+        if (answer == "n" || answer == "no" || answer == "N" || answer == "NO") {
+          ROS_WARN_STREAM("[Detection::processData] Calibration: acceleration map rejected (not marked in the log).");
+        }
+        else {
+          // highlight the acceleration maps to be stored in 'log_file_accelerations_map_'
+          log_file_accelerations_map_ << "*** To be copied in the current 'comparison_dataset' ***\n"
+                                      << "*** Real contact on: " << answer << " ***\n";
+        }
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      }
+
       log_file_accelerations_map_ << std::fixed << "Acquisition time: " << acquisition_time
                                                 << "\nContact detected on IMU: " << imu_id
                                                 << "\nGrasp primitive extracted: " << approaching_direction
                                                 << "\n" << toString(accelerations_normalized) << "\n" << std::endl;
+
+      // avoid following false contact detection
+      if (only_detection_ || calibration_) {
+        skip_samples_ = window_size_;
+      }
     }
   }
 }
