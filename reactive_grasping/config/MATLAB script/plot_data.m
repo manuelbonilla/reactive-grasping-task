@@ -21,8 +21,8 @@ function [] = plot_data(x, y, id_ref)
   x_margins = abs(x_max-x_min)/20;
   y_margins = abs(y_max-y_min)/20;
 
+  figure_size = [900 300];
   if isempty(ishandle(findobj('type','figure','name','fig_accel_map')))
-    figure_size = [900 300];
     figure('Name', 'fig_accel_map', ...
            'Color', [1 1 1], 'Units', 'pixels', ...
            'Position', [100 100 figure_size(1) figure_size(2)]);

@@ -416,7 +416,7 @@ void ReactiveGraspingDetection::parseAccelerationMap() {
     param_name = "/"  + base_name + "/"  + direction + "/"  + field_name;
     if (!private_node_handle_->getParam(param_name, samples)) {
       ROS_WARN_STREAM("[Detection::parseAccelerationMap] Can't find '" + param_name + "' in YAML configuration file.");
-      break;
+      continue;
     }
     map.insert(std::make_pair(field_name, samples));
 
@@ -424,7 +424,7 @@ void ReactiveGraspingDetection::parseAccelerationMap() {
     param_name = "/"  + base_name + "/" + direction + "/"  + field_name;
     if (!private_node_handle_->getParam(param_name, position)) {
       ROS_WARN_STREAM("[Detection::parseAccelerationMap] Can't find '" + param_name + "' in YAML configuration file.");
-      break;
+      continue;
     }
     map.insert(std::make_pair(field_name, position));
 
@@ -432,7 +432,7 @@ void ReactiveGraspingDetection::parseAccelerationMap() {
     param_name = "/"  + base_name + "/"  + direction + "/"  + field_name;
     if (!private_node_handle_->getParam(param_name, orientation)) {
       ROS_WARN_STREAM("[Detection::parseAccelerationMap] Can't find '" + param_name + "' in YAML configuration file.");
-      break;
+      continue;
     }
     map.insert(std::make_pair(field_name, orientation));
 
