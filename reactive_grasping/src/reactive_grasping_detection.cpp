@@ -35,6 +35,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   private_node_handle_->param("num_imus", num_imus_, DEFAULT_NUM_IMUS);
   private_node_handle_->param("gravity_value", gravity_value_, DEFAULT_GRAVITY_VALUE);
   private_node_handle_->param("contact_threshold", contact_threshold_, (double)DEFAULT_CONTACT_THRESHOLD);
+  private_node_handle_->param("false_positive_threshold", false_positive_threshold_, (double)DEFAULT_FALSE_POSITIVE_THRESHOLD);
   private_node_handle_->param("window_size", window_size_, DEFAULT_WINDOW_SIZE);
   private_node_handle_->param("tails_scale_factor", tails_scale_factor_, (double)DEFAULT_TAILS_SCALE_FACTOR);
   private_node_handle_->param("delay_threshold", delay_threshold_, (double)DEFAULT_DELAY_THRESHOLD);
@@ -43,19 +44,21 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   private_node_handle_->param("log_file_name_raw", log_file_name_raw_, std::string(DEFAULT_LOG_FILE_NAME_RAW));
   private_node_handle_->param("log_file_name_filt", log_file_name_filt_, std::string(DEFAULT_LOG_FILE_NAME_FILT));
   private_node_handle_->param("log_file_name_map", log_file_name_map_, std::string(DEFAULT_LOG_FILE_NAME_MAP));
+  private_node_handle_->param("log_file_name_gyro", log_file_name_gyro_, std::string(DEFAULT_LOG_FILE_NAME_GYRO));
 
   // retrieves the comparison acceleration evolutions and their relative target pose of the end-effector
   parseAccelerationMap();
 
   // at the startup the raw and filtered acceleration structures are filled with 0 values
-  reactive_grasping::AccelHistory starting_accel;
-  starting_accel.x.resize(window_size_);
-  starting_accel.y.resize(window_size_);
-  starting_accel.z.resize(window_size_);
-  starting_accel.abs_contribution.resize(window_size_);
+  reactive_grasping::DataHistory init_values;
+  init_values.x.resize(window_size_);
+  init_values.y.resize(window_size_);
+  init_values.z.resize(window_size_);
+  init_values.abs_contribution.resize(window_size_);
   for (int i=0; i<num_imus_; i++) {
-    accelerations_raw_.push_back(starting_accel);
-    accelerations_filt_.push_back(starting_accel);
+    accel_raw_.push_back(init_values);
+    accel_filt_.push_back(init_values);
+    gyro_raw_.push_back(init_values);
   }
 
   // stores in 'date_time_' the current time converted into a handful form (date/time format YYYYMMDD_HHMMSS)
@@ -68,9 +71,10 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   std::string command = "mkdir -p " + log_file_base_path_;
   system(command.c_str());
   // opens log files
-  log_file_accelerations_raw_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_raw_ + ".dat");
-  log_file_accelerations_filt_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_filt_ + ".dat");
-  log_file_accelerations_map_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_map_ + ".dat");
+  log_file_accel_raw_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_raw_ + ".dat");
+  log_file_accel_filt_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_filt_ + ".dat");
+  log_file_accel_map_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_map_ + ".dat");
+  log_file_gyro_raw_.open(log_file_base_path_ + date_time_ + "_" + log_file_name_gyro_ + ".dat");
 
   // statistics variables initialization
   start_time_ = ros::Time::now();
@@ -88,6 +92,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
 
   // simulates a fake contact detection to let the robot reach the home pose
   contact_detected_ = true;
+  false_positive_ = false;
   generateAndSendGoal("first_homing","none");
 
   // subscribes to the sensorized Glove topic and initializes the action client
@@ -109,17 +114,21 @@ ReactiveGraspingDetection::~ReactiveGraspingDetection() {
   std::cout << "       + Total contacts detected: " << num_contacts_detected_ << '\n';
 
   // closes log files if previously opened
-  if (log_file_accelerations_raw_.is_open()) {
+  if (log_file_accel_raw_.is_open()) {
     std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_raw_ + ".dat\n";
-    log_file_accelerations_raw_.close();
+    log_file_accel_raw_.close();
   }
-  if (log_file_accelerations_filt_.is_open()) {
+  if (log_file_accel_filt_.is_open()) {
     std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_filt_ + ".dat\n";
-    log_file_accelerations_filt_.close();
+    log_file_accel_filt_.close();
   }
-  if (log_file_accelerations_map_.is_open()) {
+  if (log_file_accel_map_.is_open()) {
     std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_map_ + ".dat\n";
-    log_file_accelerations_map_.close();
+    log_file_accel_map_.close();
+  }
+  if (log_file_gyro_raw_.is_open()) {
+    std::cout << "       + Log file generated: " + log_file_base_path_ + date_time_ + "_" + log_file_name_gyro_ + ".dat\n";
+    log_file_gyro_raw_.close();
   }
   std::cout << std::endl;
 
@@ -171,7 +180,7 @@ void ReactiveGraspingDetection::actionFeedbackCallback(const reactive_grasping::
 }
 
 void ReactiveGraspingDetection::appendToLogFile(std::ofstream *log_file,
-                                                const std::vector<reactive_grasping::AccelHistory> &data,
+                                                const std::vector<reactive_grasping::DataHistory> &data,
                                                 const ros::Duration &acquisition_time) {
   // stores all linear accelerations in the given log file (first term is acquisition time)
   *log_file << std::fixed << acquisition_time;
@@ -186,9 +195,9 @@ void ReactiveGraspingDetection::appendToLogFile(std::ofstream *log_file,
 int ReactiveGraspingDetection::checkOscillation(int imu_id) {
   std::vector<double> values_x, values_y, values_z;
   for (int j=0; j<3; j++) {
-    values_x.push_back(accelerations_filt_.at(imu_id).x.at(window_size_/3 + j));
-    values_y.push_back(accelerations_filt_.at(imu_id).y.at(window_size_/3 + j));
-    values_z.push_back(accelerations_filt_.at(imu_id).z.at(window_size_/3 + j));
+    values_x.push_back(accel_filt_.at(imu_id).x.at(window_size_/3 + j));
+    values_y.push_back(accel_filt_.at(imu_id).y.at(window_size_/3 + j));
+    values_z.push_back(accel_filt_.at(imu_id).z.at(window_size_/3 + j));
   }
 
   // TODO: otherwise finds the most relevant contribute and only for it evaluates the oscillation
@@ -202,20 +211,30 @@ int ReactiveGraspingDetection::checkOscillation(int imu_id) {
 }
 
 int ReactiveGraspingDetection::detectContact() {
-  // finds which IMU has the biggest 'abs_contribution' from all the axes (at 'window_size_/3' sample)
-  std::vector<double> abs_values;
-  for (auto const &imu : accelerations_filt_) {
-    abs_values.push_back(imu.abs_contribution.at(window_size_/3));
+  // finds which IMU has the biggest acceleration 'abs_contribution' from all the axes (at 'window_size_/3' sample)
+  std::vector<double> accel_abs_values;
+  for (auto const &imu : accel_filt_) {
+    accel_abs_values.push_back(imu.abs_contribution.at(window_size_/3));
   }
-  std::vector<double>::const_iterator it_max = std::max_element(abs_values.begin(), abs_values.end());
+  std::vector<double>::const_iterator it_accel_max = std::max_element(accel_abs_values.begin(), accel_abs_values.end());
 
   // evaluates if the max(abs(xyz)) is greater than a specific threshold
-  if (*it_max > contact_threshold_) {
-    int imu_id = it_max - abs_values.begin();
+  if (*it_accel_max > contact_threshold_) {
+    int imu_id = it_accel_max - accel_abs_values.begin();
     // checks for outliers (following 2 samples must be relevant and at least one opposite in sign to the first)
-    if (accelerations_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 1) > contact_threshold_
-        && accelerations_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 2) > contact_threshold_) {
+    if (accel_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 1) > contact_threshold_
+        && accel_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 2) > contact_threshold_) {
       if (checkOscillation(imu_id) == 0) {
+        ROS_DEBUG_STREAM("[Detection::detectContact] IMU: " << imu_id 
+                         << ", gyro contact value:" << gyro_raw_.at(imu_id).y.at(window_size_/3 + i));
+        if (gyro_raw_.at(imu_id).y.at(window_size_/3 + i) > false_positive_threshold_) {
+          ROS_WARN_STREAM("[Detection::detectContact] False positive contact!");
+          contact_detected_ = true;
+          false_positive_ = true;
+          skip_samples_ = 2*window_size_;
+          return -1;
+        }
+
         num_contacts_detected_++;
         return imu_id;
       }
@@ -225,7 +244,7 @@ int ReactiveGraspingDetection::detectContact() {
   return -1;
 }
 
-void ReactiveGraspingDetection::eraseOldestSample(std::vector<reactive_grasping::AccelHistory> &data) {
+void ReactiveGraspingDetection::eraseOldestSample(std::vector<reactive_grasping::DataHistory> &data) {
   for (auto &imu : data) {
     imu.x.erase(imu.x.begin());
     imu.y.erase(imu.y.begin());
@@ -235,15 +254,16 @@ void ReactiveGraspingDetection::eraseOldestSample(std::vector<reactive_grasping:
 }
 
 void ReactiveGraspingDetection::eraseOldestSample() {
-  eraseOldestSample(accelerations_raw_);
-  eraseOldestSample(accelerations_filt_);
+  eraseOldestSample(accel_raw_);
+  eraseOldestSample(accel_filt_);
+  eraseOldestSample(gyro_raw_);
 }
 
 std::string ReactiveGraspingDetection::extractGraspPrimitive(const std::vector<double> &data) {
   std::map<std::string, double> max_xcorr_values_map;
   std::vector<double> xcorr_values;
 
-  for (auto const &pair : acceleration_map_) {
+  for (auto const &pair : accel_map_) {
     // evaluates the cross-correlation with the lag limited to 'window_size_/2'
     xcorr_values = xcorr(data, pair.second.at("samples"), window_size_/2);
     // stores the absolute peak of cross-correlation in a map containing also the relative approaching direction
@@ -260,13 +280,13 @@ std::string ReactiveGraspingDetection::extractGraspPrimitive(const std::vector<d
 geometry_msgs::Pose ReactiveGraspingDetection::fillTargetPose(std::string approaching_direction) {
   geometry_msgs::Pose target_pose;
 
-  target_pose.position.x = acceleration_map_.at(approaching_direction).at("position").at(0);
-  target_pose.position.y = acceleration_map_.at(approaching_direction).at("position").at(1);
-  target_pose.position.z = acceleration_map_.at(approaching_direction).at("position").at(2);
+  target_pose.position.x = accel_map_.at(approaching_direction).at("position").at(0);
+  target_pose.position.y = accel_map_.at(approaching_direction).at("position").at(1);
+  target_pose.position.z = accel_map_.at(approaching_direction).at("position").at(2);
 
-  double roll = acceleration_map_.at(approaching_direction).at("orientation").at(0);
-  double pitch = acceleration_map_.at(approaching_direction).at("orientation").at(1);
-  double yaw = acceleration_map_.at(approaching_direction).at("orientation").at(2);
+  double roll = accel_map_.at(approaching_direction).at("orientation").at(0);
+  double pitch = accel_map_.at(approaching_direction).at("orientation").at(1);
+  double yaw = accel_map_.at(approaching_direction).at("orientation").at(2);
   target_pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(angles::from_degrees(roll),
                                                                     angles::from_degrees(pitch),
                                                                     angles::from_degrees(yaw));
@@ -340,8 +360,8 @@ std::vector<double> ReactiveGraspingDetection::filter(std::vector<double> b, std
 }
 
 void ReactiveGraspingDetection::filterAccelerations() {
-  std::vector<reactive_grasping::AccelHistory>::const_iterator it_raw = accelerations_raw_.begin();
-  for (auto &imu : accelerations_filt_) {
+  std::vector<reactive_grasping::DataHistory>::const_iterator it_raw = accel_raw_.begin();
+  for (auto &imu : accel_filt_) {
     imu.x = filter(filter_coeff_b_, filter_coeff_a_, (*it_raw).x, imu.x);
     imu.y = filter(filter_coeff_b_, filter_coeff_a_, (*it_raw).y, imu.y);
     imu.z = filter(filter_coeff_b_, filter_coeff_a_, (*it_raw).z, imu.z);
@@ -436,7 +456,7 @@ void ReactiveGraspingDetection::parseAccelerationMap() {
     }
     map.insert(std::make_pair(field_name, orientation));
 
-    acceleration_map_.insert(std::make_pair(direction, map));
+    accel_map_.insert(std::make_pair(direction, map));
   }
 }
 
@@ -466,12 +486,14 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
   filterAccelerations();
   updateLogFiles(acquisition_time);
 
-  if (only_detection_ || calibration_) {
-    if (skip_samples_ == 0) {
-      contact_detected_ = false;
-    }
-    else {
+  if (false_positive_ || only_detection_ || calibration_) {
+    if (skip_samples_ > 0) {
       skip_samples_--;
+    }
+    else {  // skip_samples_ == 0
+      contact_detected_ = false;
+      false_positive_ = false;
+      ROS_DEBUG_STREAM("[Detection::processData] Ready to detect other contacts.");
     }
   }
 
@@ -482,7 +504,7 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
       contact_detected_ = true;
       ROS_INFO_STREAM("[Detection::processData] Contact Detected on IMU " << imu_id);
       // concatenates the samples in a vector of length equals 3 x 'num_imus_' x 'window_size_'
-      std::vector<double> accelerations_concatenated = toVector(accelerations_filt_);
+      std::vector<double> accelerations_concatenated = toVector(accel_filt_);
       // normalizes the vector and scales its 'tails' down (emphasizes only peaks of imu with id = 'imu_id')
       std::vector<double> accelerations_normalized = normalizeAccelerations(accelerations_concatenated, imu_id);
       // evaluates the best grasp primitive throught cross-correlation with the data set
@@ -495,7 +517,6 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
       }
 
       if (!only_detection_ && !calibration_) {
-        // flags the detection
         generateAndSendGoal("sending target pose", approaching_direction);
       }
 
@@ -511,18 +532,18 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
           ROS_WARN_STREAM("[Detection::processData] Calibration: acceleration map rejected (not marked in the log).");
         }
         else {
-          // highlight the acceleration maps to be stored in 'log_file_accelerations_map_'
-          log_file_accelerations_map_ << "*** To be copied in the current 'comparison_dataset' ***\n"
-                                      << "*** Real contact on: " << answer << " ***\n";
+          // highlight the acceleration maps to be stored in 'comparison_dataset'
+          log_file_accel_map_ << "*** To be copied in the current 'comparison_dataset' ***\n"
+                              << "*** Real contact on: " << answer << " ***\n";
         }
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       }
 
-      log_file_accelerations_map_ << std::fixed << "Acquisition time: " << acquisition_time
-                                                << "\nContact detected on IMU: " << imu_id
-                                                << "\nGrasp primitive extracted: " << approaching_direction
-                                                << "\n" << toString(accelerations_normalized) << "\n" << std::endl;
+      log_file_accel_map_ << std::fixed << "Acquisition time: " << acquisition_time
+                                        << "\nContact detected on IMU: " << imu_id
+                                        << "\nGrasp primitive extracted: " << approaching_direction
+                                        << "\n" << toString(accelerations_normalized) << "\n" << std::endl;
 
       // avoid following false contact detection
       if (only_detection_ || calibration_) {
@@ -534,10 +555,20 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
 
 void ReactiveGraspingDetection::pushBackNewSample(const std::vector<reactive_grasping::GloveIMU> &new_sample) {
   std::vector<reactive_grasping::GloveIMU>::const_iterator it_new = new_sample.begin();
-  for (auto &imu : accelerations_raw_) {
+  for (auto &imu : accel_raw_) {
     imu.x.push_back((*it_new).linear_acceleration.x);
     imu.y.push_back((*it_new).linear_acceleration.y);
     imu.z.push_back((*it_new).linear_acceleration.z);
+    imu.abs_contribution.push_back(std::abs(imu.x.back()) + std::abs(imu.y.back()) + std::abs(imu.z.back()));
+
+    it_new++;
+  }
+
+  it_new = new_sample.begin();
+  for (auto &imu : gyro_raw_) {
+    imu.x.push_back((*it_new).angular_velocity.x);
+    imu.y.push_back((*it_new).angular_velocity.y);
+    imu.z.push_back((*it_new).angular_velocity.z);
     imu.abs_contribution.push_back(std::abs(imu.x.back()) + std::abs(imu.y.back()) + std::abs(imu.z.back()));
 
     it_new++;
@@ -550,7 +581,7 @@ std::string ReactiveGraspingDetection::toString(const std::vector<double> &data)
   return ss.str();
 }
 
-std::vector<double> ReactiveGraspingDetection::toVector(const std::vector<reactive_grasping::AccelHistory> &data) {
+std::vector<double> ReactiveGraspingDetection::toVector(const std::vector<reactive_grasping::DataHistory> &data) {
   std::vector<double> data_vector;
   for (auto const &imu : data) {
     std::copy_n(imu.x.begin(), imu.x.size(), std::back_inserter(data_vector));
@@ -561,8 +592,9 @@ std::vector<double> ReactiveGraspingDetection::toVector(const std::vector<reacti
 }
 
 void ReactiveGraspingDetection::updateLogFiles(const ros::Duration &acquisition_time) {
-  appendToLogFile(&log_file_accelerations_raw_, accelerations_raw_, acquisition_time);
-  appendToLogFile(&log_file_accelerations_filt_, accelerations_filt_, acquisition_time);
+  appendToLogFile(&log_file_accel_raw_, accel_raw_, acquisition_time);
+  appendToLogFile(&log_file_accel_filt_, accel_filt_, acquisition_time);
+  appendToLogFile(&log_file_gyro_raw_, gyro_raw_, acquisition_time);
 }
 
 std::vector<double> ReactiveGraspingDetection::xcorr(std::vector<double> x, std::vector<double> y, int max_lag) {

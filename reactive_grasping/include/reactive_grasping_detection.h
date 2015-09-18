@@ -33,7 +33,7 @@
 // Auto-generated from msg/ directory libraries
 #include "reactive_grasping/GloveIMU.h"
 #include "reactive_grasping/GloveIMUArray.h"
-#include "reactive_grasping/AccelHistory.h"
+#include "reactive_grasping/DataHistory.h"
 #include "reactive_grasping/MotionAction.h"
 // TODO try to use the glove messages (instead of the copies in reactive_grasping)
 
@@ -46,6 +46,7 @@
 #define DEFAULT_NUM_IMUS 5  // number of IMUs on the sensorized Glove
 #define DEFAULT_GRAVITY_VALUE 4096  // 1g gravity value
 #define DEFAULT_CONTACT_THRESHOLD 0.5*DEFAULT_GRAVITY_VALUE  // threshold to be considered as a contact
+#define DEFAULT_FALSE_POSITIVE_THRESHOLD 500  // gyro threshold to avoid false positive detection
 #define DEFAULT_WINDOW_SIZE 30  // number of samples (size) of the detection and correlation window
 #define DEFAULT_TAILS_SCALE_FACTOR 0.5  // scale factor of the peaks of the other IMUs
 #define DEFAULT_DELAY_THRESHOLD 60  // aborts a goal if not reached in at least 'delay_threshold_' seconds
@@ -58,6 +59,7 @@
 #define DEFAULT_LOG_FILE_NAME_RAW "accelerations_raw"
 #define DEFAULT_LOG_FILE_NAME_FILT "accelerations_filtered"
 #define DEFAULT_LOG_FILE_NAME_MAP "accelerations_map"
+#define DEFAULT_LOG_FILE_NAME_GYRO "gyro_velocities_raw"
 
 
 class ReactiveGraspingDetection {
@@ -74,10 +76,12 @@ class ReactiveGraspingDetection {
 
   // system state variables
   bool contact_detected_;
+  bool false_positive_;
   ros::Time goal_activate_time_;
-  std::vector<reactive_grasping::AccelHistory> accelerations_raw_;
-  std::vector<reactive_grasping::AccelHistory> accelerations_filt_;
-  std::map<std::string, std::map<std::string, std::vector<double>>> acceleration_map_;
+  std::vector<reactive_grasping::DataHistory> accel_raw_;
+  std::vector<reactive_grasping::DataHistory> accel_filt_;
+  std::map<std::string, std::map<std::string, std::vector<double>>> accel_map_;
+  std::vector<reactive_grasping::DataHistory> gyro_raw_;
 
   // settings variables
   std::string glove_topic_name_;
@@ -88,6 +92,7 @@ class ReactiveGraspingDetection {
   int num_imus_;
   int window_size_;
   double contact_threshold_;
+  double false_positive_threshold_;
   double tails_scale_factor_;
   double delay_threshold_;
   bool only_detection_;
@@ -105,11 +110,13 @@ class ReactiveGraspingDetection {
   std::string log_file_name_raw_;
   std::string log_file_name_filt_;
   std::string log_file_name_map_;
+  std::string log_file_name_gyro_;
   std::string log_file_base_path_;
   std::string date_time_;
-  std::ofstream log_file_accelerations_raw_;
-  std::ofstream log_file_accelerations_filt_;
-  std::ofstream log_file_accelerations_map_;
+  std::ofstream log_file_accel_raw_;
+  std::ofstream log_file_accel_filt_;
+  std::ofstream log_file_accel_map_;
+  std::ofstream log_file_gyro_raw_;
 
   // verbosity control variables
   bool verbose_mode_;
@@ -123,7 +130,7 @@ class ReactiveGraspingDetection {
 
   void actionFeedbackCallback(const reactive_grasping::MotionFeedbackConstPtr &feedback);
 
-  void appendToLogFile(std::ofstream *log_file, const std::vector<reactive_grasping::AccelHistory> &data,
+  void appendToLogFile(std::ofstream *log_file, const std::vector<reactive_grasping::DataHistory> &data,
                       const ros::Duration &acquisition_time);
 
   int checkOscillation(int imu_id);
@@ -132,7 +139,7 @@ class ReactiveGraspingDetection {
 
   void eraseOldestSample();
 
-  void eraseOldestSample(std::vector<reactive_grasping::AccelHistory> &data);
+  void eraseOldestSample(std::vector<reactive_grasping::DataHistory> &data);
 
   std::string extractGraspPrimitive(const std::vector<double> &data);
 
@@ -158,7 +165,7 @@ class ReactiveGraspingDetection {
 
   std::string toString(const std::vector<double> &data);
 
-  std::vector<double> toVector(const std::vector<reactive_grasping::AccelHistory> &data);
+  std::vector<double> toVector(const std::vector<reactive_grasping::DataHistory> &data);
 
   void updateLogFiles(const ros::Duration &acquisition_time);
 

@@ -18,7 +18,7 @@ add_message_files(
   FILES
     GloveIMU.msg
     GloveIMUArray.msg
-    AccelHistory.msg
+    DataHistory.msg
 )
 
 add_action_files(
