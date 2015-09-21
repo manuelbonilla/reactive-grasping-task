@@ -93,6 +93,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   // simulates a fake contact detection to let the robot reach the home pose
   contact_detected_ = true;
   false_positive_ = false;
+  hand_closed_ = false;
   generateAndSendGoal("first_homing","none");
 
   // subscribes to the sensorized Glove topic and initializes the action client
@@ -225,14 +226,16 @@ int ReactiveGraspingDetection::detectContact() {
     if (accel_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 1) > contact_threshold_
         && accel_filt_.at(imu_id).abs_contribution.at(window_size_/3 + 2) > contact_threshold_) {
       if (checkOscillation(imu_id) == 0) {
-        ROS_DEBUG_STREAM("[Detection::detectContact] IMU: " << imu_id 
-                         << ", gyro contact value:" << gyro_raw_.at(imu_id).y.at(window_size_/3 + i));
-        if (gyro_raw_.at(imu_id).y.at(window_size_/3 + i) > false_positive_threshold_) {
-          ROS_WARN_STREAM("[Detection::detectContact] False positive contact!");
-          contact_detected_ = true;
-          false_positive_ = true;
-          skip_samples_ = 2*window_size_;
-          return -1;
+        if (!hand_closed_) {
+          ROS_DEBUG_STREAM("[Detection::detectContact] IMU: " << imu_id 
+                           << ", gyro contact value:" << gyro_raw_.at(imu_id).y.at(window_size_/3));
+          if (gyro_raw_.at(imu_id).y.at(window_size_/3) > false_positive_threshold_) {
+            ROS_WARN_STREAM("[Detection::detectContact] False positive contact!");
+            contact_detected_ = true;
+            false_positive_ = true;
+            skip_samples_ = 2*window_size_;
+            return -1;
+          }
         }
 
         num_contacts_detected_++;
@@ -493,7 +496,7 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
     else {  // skip_samples_ == 0
       contact_detected_ = false;
       false_positive_ = false;
-      ROS_DEBUG_STREAM("[Detection::processData] Ready to detect other contacts.");
+      ROS_INFO_STREAM("[Detection::processData] Ready to detect other contacts.");
     }
   }
 
@@ -502,6 +505,7 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
     int imu_id = detectContact();
     if (imu_id >= 0) {
       contact_detected_ = true;
+      hand_closed_ = !hand_closed_;
       ROS_INFO_STREAM("[Detection::processData] Contact Detected on IMU " << imu_id);
       // concatenates the samples in a vector of length equals 3 x 'num_imus_' x 'window_size_'
       std::vector<double> accelerations_concatenated = toVector(accel_filt_);

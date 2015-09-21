@@ -77,6 +77,7 @@ class ReactiveGraspingDetection {
   // system state variables
   bool contact_detected_;
   bool false_positive_;
+  bool hand_closed_;
   ros::Time goal_activate_time_;
   std::vector<reactive_grasping::DataHistory> accel_raw_;
   std::vector<reactive_grasping::DataHistory> accel_filt_;
