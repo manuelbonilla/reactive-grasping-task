@@ -17,6 +17,7 @@
 
     <!-- choose whether or not to start the full robot simulation -->
     <arg name="use_robot_sim" default="true"/>
+    <arg name="use_demo" default="false"/>
 
     <!-- LAUNCH IMPLEMENTATION -->
 
@@ -107,8 +108,16 @@
 
     <!-- if a real robot it is used, the 'task_core' has to be started manually after all the initialization -->
     <group if="$(arg use_robot_sim)">
-      <include file="$(find reactive_grasping)/launch/task_core.launch"/>
+      <group unless="$(arg use_demo)">
+        <include file="$(find reactive_grasping)/launch/task_core.launch"/>
+      </group>
     </group>
+
+    <!-- only to show a demo of the grasp primitives -->
+    <group if="$(arg use_demo)">
+      <include file="$(find reactive_grasping)/launch/task_demo.launch"/>
+    </group>
+
 
     <!-- #### components -->
 

@@ -45,6 +45,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   private_node_handle_->param("log_file_name_filt", log_file_name_filt_, std::string(DEFAULT_LOG_FILE_NAME_FILT));
   private_node_handle_->param("log_file_name_map", log_file_name_map_, std::string(DEFAULT_LOG_FILE_NAME_MAP));
   private_node_handle_->param("log_file_name_gyro", log_file_name_gyro_, std::string(DEFAULT_LOG_FILE_NAME_GYRO));
+  private_node_handle_->param("demo", demo_, false);
 
   // retrieves the comparison acceleration evolutions and their relative target pose of the end-effector
   parseAccelerationMap();
@@ -81,6 +82,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   num_data_processed_ = 0;
   num_contacts_detected_ = 0;
 
+  // initializes the action client
   motion_action_client_ = new actionlib::SimpleActionClient<reactive_grasping::MotionAction>(node_handle_,
                                                                                              action_server_,
                                                                                              true);
@@ -96,7 +98,23 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
   hand_closed_ = false;
   generateAndSendGoal("first_homing","none");
 
-  // subscribes to the sensorized Glove topic and initializes the action client
+  // a demo can be launched without a real glove connected: it shows a sequence of all the grasp primitives performable
+  if (demo_) {
+    motion_action_client_->waitForResult();  // waits for the end of the initial homing
+    for (auto const &pair : accel_map_) {
+      ROS_INFO_STREAM("[Demo] Showing grasp primitive '" << pair.first << "'.");
+      generateAndSendGoal("sending target pose", pair.first);
+      motion_action_client_->waitForResult();  // waits for the end of the grasp primitive
+      ros::Duration(0.1).sleep();
+
+      ROS_INFO_STREAM("[Demo] Homing.");
+      generateAndSendGoal("homing", pair.first);  // just to reset the robot to the initial pose
+      motion_action_client_->waitForResult();  // waits for the end of the homing
+      ros::Duration(0.1).sleep();
+    }
+  }
+
+  // subscribes to the sensorized Glove topic
   accel_map_publisher_ = node_handle_.advertise<std_msgs::Float64MultiArray>(accel_map_topic_name_, topic_queue_length_);
   glove_subscriber_ = node_handle_.subscribe(glove_topic_name_, topic_queue_length_,
                                              &ReactiveGraspingDetection::gloveMessageCallback, this);
@@ -155,7 +173,7 @@ void ReactiveGraspingDetection::actionDoneCallback(const actionlib::SimpleClient
                     << ", y: " << result->final_pose.pose.position.y
                     << ", z: " << result->final_pose.pose.position.z << ")");
   }
-  motion_action_client_->stopTrackingGoal();
+//  motion_action_client_->stopTrackingGoal();
   contact_detected_ = false;
 }
 

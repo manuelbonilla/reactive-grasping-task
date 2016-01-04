@@ -98,6 +98,7 @@ class ReactiveGraspingDetection {
   double delay_threshold_;
   bool only_detection_;
   bool calibration_;
+  bool demo_;
   int skip_samples_;
   std::vector<double> filter_coeff_a_;
   std::vector<double> filter_coeff_b_;

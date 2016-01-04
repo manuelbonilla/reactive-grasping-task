@@ -1,0 +1,19 @@
+<launch>
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find reactive_grasping)/config/rosconsole_info_enabled.conf" />
+
+  <rosparam command="load" file="$(find reactive_grasping)/config/comparison_dataset.yaml" />
+
+  <!-- choose whether or not to enable the verbose mode -->
+  <arg name="verbose_mode_detection" default="false"/>
+  <arg name="verbose_mode_motion" default="false"/>
+
+  <node pkg="reactive_grasping" type="detection" name="detection" output="screen" cwd="ROS_HOME">
+    <param name="verbose_mode" type="bool" value="$(arg verbose_mode_detection)" />
+    <param name="window_size" type="int" value="30" />
+    <param name="demo" type="bool" value="true" />
+  </node>
+
+  <node pkg="reactive_grasping" type="motion" name="motion" output="screen" cwd="ROS_HOME">
+    <param name="verbose_mode" type="bool" value="$(arg verbose_mode_motion)" />
+  </node>
+</launch>

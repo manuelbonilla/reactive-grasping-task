@@ -13,7 +13,7 @@ This package provides two synchronized nodes which implement a *reactive graspin
 
 1. Be sure that the Glove (the only hardware needed) is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the Glove settings (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package);
 2. In a terminal, execute `roslaunch reactive_grasping_description display.launch` and wait for the robot to reach the *home pose* (this may take a while). Set `use_rviz:=false` to speed up the simulation.
-4. If you touch the Glove with an object, the simulated robot should perform a grasp primitive to "grab" it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
+3. If you touch the Glove with an object, the simulated robot should perform a grasp primitive to "grab" it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
 
 ## Real KUKA robot usage
 
@@ -35,6 +35,11 @@ This package provides two synchronized nodes which implement a *reactive graspin
   - [*optional*] check if the KUKA robot and the SoftHand can be moved properly `rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller`;
   - `roslaunch reactive_grasping task_core.launch`;
 9. If you touch the Glove with an object, the KUKA robot should perform a grasp primitive to grab it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
+
+## Demo usage
+
+The demo can be tested either in the simulated Gazebo scenario or with the real KUKA robot, and it shows the whole sequence of grasp primitives performable by the robot. This can be useful to see if everything work as expected.
+To start the demo, it is only necessary to add `use_demo:=true` when launching `display.launch` in both the previous scenarios.
 
 ## Calibration
 The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *calibration*. Touch the glove several times and interactively choose which acceleration map is is satisfactory (use the MATLAB script *visualize_acceleration_maps.m* to help you visualizing the maps). The chosen acceleration maps has to be searched in the *&#42;_accelerations_map.dat* log file and copied (in the proper position) in the *comparison_dataset.yaml* configuration file. It has to be notice that the robot **won't perform** the grasp primitive while calibrating.
