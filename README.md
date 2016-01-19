@@ -6,17 +6,17 @@ This package provides two synchronized nodes which implement a *reactive graspin
 ## Installation
 
 1. Follow the instruction in the README.md at CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc to properly clone the *vito_robot* package in your catkin workspace.
-```
-    git clone --recursive git@github.com:CentroEPiaggio/vito-robot.git
-    git checkout 3b74d1878909c8790d4946acbbc5628675ec70fc
-    git submodule update
-```
+
+        git clone --recursive git@github.com:CentroEPiaggio/vito-robot.git
+        git checkout 3b74d1878909c8790d4946acbbc5628675ec70fc
+        git submodule update
+
     
 2. Compile it through `catikin_make` and check if everything works as expected (i.e. execute `roslaunch vito_description display.launch`).
 3. Clone the *reactive_grasping* package (use the `--recursive` flag) in your catkin workspace and compile everything (again with `catikin_make`).
-```
-    git clone --recursive git@github.com:alextoind/reactive-grasping-task.git
-```
+
+        git clone --recursive git@github.com:alextoind/reactive-grasping-task.git
+
 
 ## Simulation usage
 
