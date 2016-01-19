@@ -4,7 +4,7 @@ This package provides two synchronized nodes which implement a *reactive graspin
 ![rviz](media/rviz.png)
 
 ## Installation
-1. Follow the instruction in the README.md at CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc to properly clone the *vito_robot* package in your catkin workspace.
+1. Follow the instruction in the README.md at [CentroEPiaggio/vito-robot@3b74d18](https://github.com/CentroEPiaggio/vito-robot/tree/3b74d1878909c8790d4946acbbc5628675ec70fc) to properly clone the *vito-robot* package in your catkin workspace.
 
         git clone --recursive git@github.com:CentroEPiaggio/vito-robot.git
         cd vito-robot
@@ -12,21 +12,22 @@ This package provides two synchronized nodes which implement a *reactive graspin
         git submodule update
         cd ..
         
-2. Compile it through `catikin_make` and check if everything works as expected (i.e. execute `roslaunch vito_description display.launch`).
-3. Clone the *reactive_grasping* package (use the `--recursive` flag) in your catkin workspace and compile everything (again with `catikin_make`).
+2. Compile it through `catkin_make` and check if everything works as expected (i.e. execute `roslaunch vito_description display.launch`).
+3. Clone the *reactive_grasping* package (use the `--recursive` flag) in your catkin workspace and compile everything (again with `catkin_make`).
 
         git clone --recursive git@github.com:alextoind/reactive-grasping-task.git
 
 ## Simulation usage
-1. Be sure that the Glove (the only hardware needed) is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the Glove settings (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package);
-2. In a terminal, execute `roslaunch reactive_grasping_description display.launch` and wait for the robot to reach the *home pose* (this may take a while). Set `use_rviz:=false` to speed up the simulation.
-3. If you touch the Glove with an object, the simulated robot should perform a grasp primitive to "grab" it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
+1. have the [CentroEPiaggio/vito-robot@3b74d18](https://github.com/CentroEPiaggio/vito-robot/tree/3b74d1878909c8790d4946acbbc5628675ec70fc) and last commit of reactive-grasping-task packages compiled in the catkin workspace;
+2. Be sure that the Glove (the only hardware needed) is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the Glove settings (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package);
+3. In a terminal, execute `roslaunch reactive_grasping_description display.launch` and wait for the robot to reach the *home pose* (this may take a while). Set `use_rviz:=false` to speed up the simulation.
+4. If you touch the Glove with an object, the simulated robot should perform a grasp primitive to "grab" it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
 
 ## Real KUKA robot usage
-1. have the CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc and last commit of reactive-grasping-task packages compiled in the catkin workspace;
+1. have the [CentroEPiaggio/vito-robot@3b74d18](https://github.com/CentroEPiaggio/vito-robot/tree/3b74d1878909c8790d4946acbbc5628675ec70fc) and last commit of reactive-grasping-task packages compiled in the catkin workspace;
 2. have the PC in the KUKA local network with IP set to 192.168.0.150. Check connection with the right arm: `ping 192.168.0.10`;
-3. check the SoftHand ID: use the *qbmove library* in the SoftHand package (`ls /dev | grep USB` to get the current hand port);
-4. Be sure that the Glove is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the Glove settings (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package).  
+3. check the SoftHand ID: use the *qbmove library* in the SoftHand package (`ls /dev | grep USB` to get the current hand port) and set [this value](https://github.com/alextoind/reactive-grasping-task/blob/master/reactive_grasping_description/launch/display.launch#L207) to match it;
+4. Be sure that the Glove is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the [Glove settings](https://github.com/alextoind/glove-acquisition/blob/master/launch/glove_publisher.launch#L9) (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package); 
 5. move the robot in a pose near to the [*task home*](https://github.com/alextoind/reactive-grasping-task/blob/master/reactive_grasping_moveit_configuration/config/vito.srdf#L19) using gravity compensation mode;
 6. **IMPORTANT:** have a hand on the emergency button from now on;
 7. start the [KRL script](https://github.com/CentroEPiaggio/kuka-lwr/blob/b91e1944e3eaa3ac67c4664b4cff1e55c1a237af/lwr_hw/krl/ros_control.src):
@@ -50,7 +51,7 @@ To start the demo, it is only necessary to add `use_demo:=true` when launching `
 The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *calibration*. Touch the glove several times and interactively choose which acceleration map is is satisfactory (use the MATLAB script *visualize_acceleration_maps.m* to help you visualizing the maps). The chosen acceleration maps has to be searched in the *&#42;_accelerations_map.dat* log file and copied (in the proper position) in the *comparison_dataset.yaml* configuration file. It has to be notice that the robot **won't perform** the grasp primitive while calibrating.
 
 ## Info and Warnings
-- This package is not standalone: the Centro E. Piaggio *vito_robot* package (commit CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc) has to be compiled on your machine.
+- This package is not standalone: the Centro E. Piaggio *vito_robot* package (commit [CentroEPiaggio/vito-robot@3b74d18](https://github.com/CentroEPiaggio/vito-robot/tree/3b74d1878909c8790d4946acbbc5628675ec70fc)) has to be compiled on your machine.
 - The *ReactiveGraspingDetection* class uses linux-specific commands, e.g. `system("mkdir -p ...")`. 
 - This code has been developed for ROS Indigo on ubuntu 14.04. No warranty for other distributions.
 
