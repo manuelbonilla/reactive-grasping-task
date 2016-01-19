@@ -4,28 +4,25 @@ This package provides two synchronized nodes which implement a *reactive graspin
 ![rviz](media/rviz.png)
 
 ## Installation
-
 1. Follow the instruction in the README.md at CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc to properly clone the *vito_robot* package in your catkin workspace.
 
         git clone --recursive git@github.com:CentroEPiaggio/vito-robot.git
+        cd vito-robot
         git checkout 3b74d1878909c8790d4946acbbc5628675ec70fc
         git submodule update
-
-    
+        cd ..
+        
 2. Compile it through `catikin_make` and check if everything works as expected (i.e. execute `roslaunch vito_description display.launch`).
 3. Clone the *reactive_grasping* package (use the `--recursive` flag) in your catkin workspace and compile everything (again with `catikin_make`).
 
         git clone --recursive git@github.com:alextoind/reactive-grasping-task.git
 
-
 ## Simulation usage
-
 1. Be sure that the Glove (the only hardware needed) is properly connected to the */dev/ttyACM0* serial port (i.e. the default one). If the port differs, change it in the Glove settings (check [*glove_acquisition*](https://github.com/alextoind/glove-acquisition/tree/2d20483e9ae5e3567afbe426b076ede6963ab48c) package);
 2. In a terminal, execute `roslaunch reactive_grasping_description display.launch` and wait for the robot to reach the *home pose* (this may take a while). Set `use_rviz:=false` to speed up the simulation.
 3. If you touch the Glove with an object, the simulated robot should perform a grasp primitive to "grab" it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
 
 ## Real KUKA robot usage
-
 1. have the CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc and last commit of reactive-grasping-task packages compiled in the catkin workspace;
 2. have the PC in the KUKA local network with IP set to 192.168.0.150. Check connection with the right arm: `ping 192.168.0.10`;
 3. check the SoftHand ID: use the *qbmove library* in the SoftHand package (`ls /dev | grep USB` to get the current hand port);
@@ -46,7 +43,6 @@ This package provides two synchronized nodes which implement a *reactive graspin
 9. If you touch the Glove with an object, the KUKA robot should perform a grasp primitive to grab it. When the hand is closed, touch it again to let the robot open it and come back to the home pose. Do it as many times as you want (infinite loop until ROS shutdown).
 
 ## Demo usage
-
 The demo can be tested either in the simulated Gazebo scenario or with the real KUKA robot, and it shows the whole sequence of grasp primitives performable by the robot. This can be useful to see if everything work as expected.
 To start the demo, it is only necessary to add `use_demo:=true` when launching `display.launch` in both the previous scenarios.
 
@@ -54,7 +50,6 @@ To start the demo, it is only necessary to add `use_demo:=true` when launching `
 The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *calibration*. Touch the glove several times and interactively choose which acceleration map is is satisfactory (use the MATLAB script *visualize_acceleration_maps.m* to help you visualizing the maps). The chosen acceleration maps has to be searched in the *&#42;_accelerations_map.dat* log file and copied (in the proper position) in the *comparison_dataset.yaml* configuration file. It has to be notice that the robot **won't perform** the grasp primitive while calibrating.
 
 ## Info and Warnings
-
 - This package is not standalone: the Centro E. Piaggio *vito_robot* package (commit CentroEPiaggio/vito-robot@3b74d1878909c8790d4946acbbc5628675ec70fc) has to be compiled on your machine.
 - The *ReactiveGraspingDetection* class uses linux-specific commands, e.g. `system("mkdir -p ...")`. 
 - This code has been developed for ROS Indigo on ubuntu 14.04. No warranty for other distributions.
@@ -63,7 +58,6 @@ The *comparision_dataset.yaml* can be calibrated by enabling the ROS param *cali
 The two classes provides several parameters which can be set by the user at runtime:
 
 #### *ReactiveGraspingDetection*
-
 - verbose_mode
 - very_verbose_mode
 - only_detection
@@ -86,7 +80,6 @@ The two classes provides several parameters which can be set by the user at runt
 - log_file_name_map
 
 #### *ReactiveGraspingMotion*
-
 - verbose_mode
 - very_verbose_mode
 - hand_synergy_joint
