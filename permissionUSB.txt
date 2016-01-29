@@ -1,0 +1,15 @@
+In order to use either the SoftHand or the instrumented glove all permissions for USB ports must be set. To do that you can type
+
+sudo chmod 777 /dev/ttyUSB0 
+sudo chmod 777 /dev/ttyACM0 
+
+each time you plug these devices.
+
+Another way to do that is to add your user to one of the groups allowed by the USB ports
+
+ls -l /dev/ttyUSB0
+
+sudo adduser username groupname
+
+
+restart

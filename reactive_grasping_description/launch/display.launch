@@ -152,7 +152,7 @@
         </group>
 
         &lt;!&ndash; load the controllers in current namespace &ndash;&gt;
-        <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="joint_state_controller joint_trajectory_controller stiffness_trajectory_controller"/>
+        <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="joint_state_controller joint_trajectory_controller "/>
     </group>-->
     
     <!--<group ns="left_hand">
@@ -186,13 +186,12 @@
             <include file="$(find lwr_hw)/launch/lwr_hw.launch">
                 <arg name="port" value="49939"/>
                 <arg name="ip" value="192.168.0.10"/>
-                <arg name="use_default_joint_names" default="false"/>
-                <arg name="use_default_namespace" default="false"/>
+                <arg name="name" value="right_arm"/>
             </include>
         </group>
 
         <!-- load the controllers in current namespace -->
-        <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="joint_state_controller joint_trajectory_controller stiffness_trajectory_controller"/>
+        <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="joint_state_controller joint_trajectory_controller "/>
     </group>
 
     <group ns="right_hand">
@@ -204,7 +203,7 @@
 
             <include file="$(find soft_hand_ros_control)/launch/soft_hand_hw.launch">
                 <arg name="use_deafult_joint_names" value="false"/>
-                <arg name="hand_id" value="1"/>
+                <arg name="hand_id" value="2"/>
             </include>
         </group>
 
