@@ -232,6 +232,7 @@ int ReactiveGraspingDetection::checkOscillation(int imu_id) {
 int ReactiveGraspingDetection::detectContact() {
   // finds which IMU has the biggest acceleration 'abs_contribution' from all the axes (at 'window_size_/3' sample)
   std::vector<double> accel_abs_values;
+
   for (auto const &imu : accel_filt_) {
     accel_abs_values.push_back(imu.abs_contribution.at(window_size_/3));
   }
@@ -247,14 +248,15 @@ int ReactiveGraspingDetection::detectContact() {
         if (!hand_closed_) {
           ROS_DEBUG_STREAM("[Detection::detectContact] IMU: " << imu_id 
                            << ", gyro contact value:" << gyro_raw_.at(imu_id).y.at(window_size_/3));
-          if (gyro_raw_.at(imu_id).y.at(window_size_/3) > false_positive_threshold_) {
+    /*      if (gyro_raw_.at(imu_id).y.at(window_size_/3) > false_positive_threshold_ ) {
             ROS_WARN_STREAM("[Detection::detectContact] False positive contact!");
+            sleep(2.0);
             contact_detected_ = true;
             false_positive_ = true;
-            skip_samples_ = 2*window_size_;
+            skip_samples_ = 3*window_size_;
             return -1;
           }
-        }
+      */  }
 
         num_contacts_detected_++;
         return imu_id;

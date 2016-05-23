@@ -349,6 +349,7 @@ void ReactiveGraspingMotion::waitCallback(const sensor_msgs::JointState::ConstPt
     if (waitForEndGrasp(*current_joint_state)) {
       ROS_INFO("[Motion::waitCallback] Grasp succeeded!");
     }
+    //sleep(0.9);
     return;
   }
 }
@@ -356,7 +357,9 @@ void ReactiveGraspingMotion::waitCallback(const sensor_msgs::JointState::ConstPt
 bool ReactiveGraspingMotion::waitForEndGrasp(const sensor_msgs::JointState &joint_state) {
   if (checkForEndGrasp(joint_state)) {
     hand_moving_ = false;
+    sleep(1.0);
     generateAndPublishResult("grasp accomplished", joint_state);
+    
     return true;
   }
   else {

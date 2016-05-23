@@ -203,7 +203,7 @@
 
             <include file="$(find soft_hand_ros_control)/launch/soft_hand_hw.launch">
                 <arg name="use_deafult_joint_names" value="false"/>
-                <arg name="hand_id" value="2"/>
+                <arg name="hand_id" value="1"/>
             </include>
         </group>
 
