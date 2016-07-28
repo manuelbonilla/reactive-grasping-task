@@ -1,0 +1,19 @@
+<package format="2">
+  <name>glove_acquisition</name>
+  <version>0.5.2</version>
+  <description>
+    IMU Glove data retriever (talker + listener nodes). Check the readme for details.
+  </description>
+  <author>Alessandro Tondo</author>
+  <maintainer email="tondo.codes+ros@gmail.com">Alessandro Tondo</maintainer>
+  <license>GNU GPL v3.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+</package>
