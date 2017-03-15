@@ -41,7 +41,7 @@ ReactiveGraspingMotion::ReactiveGraspingMotion() {
   homing_ = false;
   arm_moving_ = false;
   hand_moving_ = false;
-  group_ = new moveit::planning_interface::MoveGroup(move_group_);
+  group_ = new moveit::planning_interface::MoveGroupInterface(move_group_);
 
   server_ = new actionlib::SimpleActionServer<reactive_grasping::MotionAction>(node_handle_, action_server_, false);
   server_->registerGoalCallback(boost::bind(&ReactiveGraspingMotion::goalCallback, this));

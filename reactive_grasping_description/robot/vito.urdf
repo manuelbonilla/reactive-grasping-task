@@ -426,7 +426,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Second segment of the arm. Joint along z-axis -->
-  <joint name="right_arm_0_joint" type="revolute">
+  <joint name="right_arm_a1_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.11"/>
     <axis xyz="0 0 1"/>
     <limit effort="176" lower="-2.96705972839" upper="2.96705972839" velocity="1.91986217719"/>
@@ -435,7 +435,7 @@ axis momenta are :
     <parent link="right_arm_base_link"/>
     <child link="right_arm_1_link"/>
   </joint>
-  <joint name="right_arm_0_joint_stiffness" type="revolute">
+  <joint name="right_arm_a1_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -477,7 +477,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Third segment of the arm. Joint along y-axis -->
-  <joint name="right_arm_1_joint" type="revolute">
+  <joint name="right_arm_a2_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.2005"/>
     <axis xyz="0 -1 0"/>
     <limit effort="176" lower="-2.09439510239" upper="2.09439510239" velocity="1.91986217719"/>
@@ -486,7 +486,7 @@ axis momenta are :
     <parent link="right_arm_1_link"/>
     <child link="right_arm_2_link"/>
   </joint>
-  <joint name="right_arm_1_joint_stiffness" type="revolute">
+  <joint name="right_arm_a2_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -528,7 +528,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Fourth element of the arm. z-axis -->
-  <joint name="right_arm_2_joint" type="revolute">
+  <joint name="right_arm_e1_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.20"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-2.96705972839" upper="2.96705972839" velocity="2.23402144255"/>
@@ -537,7 +537,7 @@ axis momenta are :
     <parent link="right_arm_2_link"/>
     <child link="right_arm_3_link"/>
   </joint>
-  <joint name="right_arm_2_joint_stiffness" type="revolute">
+  <joint name="right_arm_e1_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -579,7 +579,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- fifth element of the arm. x-axis -->
-  <joint name="right_arm_3_joint" type="revolute">
+  <joint name="right_arm_a3_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.20"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-2.09439510239" upper="2.09439510239" velocity="2.23402144255"/>
@@ -588,7 +588,7 @@ axis momenta are :
     <parent link="right_arm_3_link"/>
     <child link="right_arm_4_link"/>
   </joint>
-  <joint name="right_arm_3_joint_stiffness" type="revolute">
+  <joint name="right_arm_a3_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -630,7 +630,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Sixth element of the arm. z-axis -->
-  <joint name="right_arm_4_joint" type="revolute">
+  <joint name="right_arm_a4_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.20"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-2.96705972839" upper="2.96705972839" velocity="3.56047167407"/>
@@ -639,7 +639,7 @@ axis momenta are :
     <parent link="right_arm_4_link"/>
     <child link="right_arm_5_link"/>
   </joint>
-  <joint name="right_arm_4_joint_stiffness" type="revolute">
+  <joint name="right_arm_a4_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -681,7 +681,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Seventh element of the arm. z-axis -->
-  <joint name="right_arm_5_joint" type="revolute">
+  <joint name="right_arm_a5_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.19"/>
     <axis xyz="0 -1 0"/>
     <limit effort="38" lower="-2.09439510239" upper="2.09439510239" velocity="3.21140582367"/>
@@ -690,7 +690,7 @@ axis momenta are :
     <parent link="right_arm_5_link"/>
     <child link="right_arm_6_link"/>
   </joint>
-  <joint name="right_arm_5_joint_stiffness" type="revolute">
+  <joint name="right_arm_a5_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -719,7 +719,7 @@ axis momenta are :
     </collision>
   </link>
   <!-- Eighth element of the arm. z-axis -->
-  <joint name="right_arm_6_joint" type="revolute">
+  <joint name="right_arm_a6_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.078"/>
     <axis xyz="0 0 1"/>
     <limit effort="38" lower="-2.96705972839" upper="2.96705972839" velocity="3.21140582367"/>
@@ -728,7 +728,7 @@ axis momenta are :
     <parent link="right_arm_6_link"/>
     <child link="right_arm_7_link"/>
   </joint>
-  <joint name="right_arm_6_joint_stiffness" type="revolute">
+  <joint name="right_arm_a6_joint_stiffness" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="0" lower="0" upper="5000" velocity="20000"/>
     <safety_controller k_position="30" k_velocity="30" soft_lower_limit="0" soft_upper_limit="5000"/>
@@ -798,7 +798,7 @@ axis momenta are :
   <transmission name="right_arm_0_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_0_joint">
+    <joint name="right_arm_a1_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_0_motor">
@@ -808,7 +808,7 @@ axis momenta are :
   <transmission name="right_arm_1_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_1_joint">
+    <joint name="right_arm_a2_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_1_motor">
@@ -818,7 +818,7 @@ axis momenta are :
   <transmission name="right_arm_2_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_2_joint">
+    <joint name="right_arm_e1_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_2_motor">
@@ -828,7 +828,7 @@ axis momenta are :
   <transmission name="right_arm_3_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_3_joint">
+    <joint name="right_arm_a3_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_3_motor">
@@ -838,7 +838,7 @@ axis momenta are :
   <transmission name="right_arm_4_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_4_joint">
+    <joint name="right_arm_a4_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_4_motor">
@@ -848,7 +848,7 @@ axis momenta are :
   <transmission name="right_arm_5_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_5_joint">
+    <joint name="right_arm_a5_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_5_motor">
@@ -858,7 +858,7 @@ axis momenta are :
   <transmission name="right_arm_6_trans">
     <robotNamespace>right_arm</robotNamespace>
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="right_arm_6_joint">
+    <joint name="right_arm_a6_joint">
       <hardwareInterface>PositionJointInterface</hardwareInterface>
     </joint>
     <actuator name="right_arm_6_motor">

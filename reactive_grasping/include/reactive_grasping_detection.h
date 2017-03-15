@@ -29,7 +29,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <std_msgs/Float64MultiArray.h>
 // MoveIt libraries
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 // Auto-generated from msg/ directory libraries
 #include "reactive_grasping/GloveIMU.h"
 #include "reactive_grasping/GloveIMUArray.h"

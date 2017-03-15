@@ -28,7 +28,7 @@
 #include <angles/angles.h>
 #include <actionlib/server/simple_action_server.h>
 // MoveIt libraries
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 // Auto-generated from msg/ directory libraries
 #include "reactive_grasping/MotionAction.h"
 
@@ -66,8 +66,8 @@ class ReactiveGraspingMotion {
   ros::Subscriber joints_subscriber_;
   tf::TransformListener tf_listener_;
   actionlib::SimpleActionServer<reactive_grasping::MotionAction> *server_;
-  moveit::planning_interface::MoveGroup *group_;
-  moveit::planning_interface::MoveGroup::Plan plan_to_target_;
+  moveit::planning_interface::MoveGroupInterface *group_;
+  moveit::planning_interface::MoveGroupInterface::Plan plan_to_target_;
 
   // system state variables
   double hand_grasped_;

@@ -59,7 +59,7 @@ target_link_libraries(${BIN_DETECTION}
   ${catkin_LIBRARIES}
 )
 add_dependencies(${BIN_DETECTION}
-  ${catkin_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS} reactive_grasping_generate_messages_cpp
 )
 
 # Motion:
@@ -71,5 +71,5 @@ target_link_libraries(${BIN_MOTION}
   ${catkin_LIBRARIES}
 )
 add_dependencies(${BIN_MOTION}
-  ${catkin_EXPORTED_TARGETS}
-)
+  ${catkin_EXPORTED_TARGETS} reactive_grasping_generate_messages_cpp
+) 
