@@ -28,6 +28,7 @@
 #include <angles/angles.h>
 #include <actionlib/client/simple_action_client.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64.h>
 // MoveIt libraries
 #include <moveit/move_group_interface/move_group_interface.h>
 // Auto-generated from msg/ directory libraries
@@ -71,7 +72,7 @@ class ReactiveGraspingDetection {
   ros::NodeHandle *private_node_handle_;
   ros::NodeHandle node_handle_;
   ros::Subscriber glove_subscriber_;
-  ros::Publisher accel_map_publisher_;
+  ros::Publisher accel_map_publisher_, pub_espen;
   actionlib::SimpleActionClient<reactive_grasping::MotionAction> *motion_action_client_;
 
   // system state variables

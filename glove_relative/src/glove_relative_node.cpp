@@ -5,6 +5,7 @@
 #include <qb_interface/inertialSensorArray.h>
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/SVD>
+#include <fstream>
 
 ros::Publisher pub_glove;
 ros::Subscriber sub_acc, sub_gyro;
@@ -14,6 +15,8 @@ int num_imu;
 double sampleFreq_  =  80;
 double beta_        =  0.4;
 std::vector<Eigen::Vector4d> QL_vector;
+
+std::ofstream output_file;
 
 /*This package publish the relative acceleration of num_imu-1 imu's relative to the num_imu_imo*/
 
@@ -74,7 +77,6 @@ Eigen::Vector4d MadgwickFilter(int P, int N, Eigen::Vector4d qL)
 
 	Eigen::Vector4d Napla;
 
-
 	aP(0)  = acc[P * 3];
 	aP(1)  = acc[P * 3 + 1];
 	aP(2)  = acc[P * 3 + 2];
@@ -83,7 +85,7 @@ Eigen::Vector4d MadgwickFilter(int P, int N, Eigen::Vector4d qL)
 	aN(1)  = acc[N * 3 + 1];
 	aN(2)  = acc[N * 3 + 2];
 
-	if((aP.norm() ==0) || (aN.norm() == 0.0))
+	if ((aP.norm() == 0) || (aN.norm() == 0.0))
 		return qL;
 
 	// std::cout << "P " << P << "  ax " << aP(0) << "  ay " << aP(1) << "  az " << aP(2) << std::endl;
@@ -150,26 +152,42 @@ Eigen::Vector4d MadgwickFilter(int P, int N, Eigen::Vector4d qL)
 
 void cb_acc(const qb_interface::inertialSensorArray::ConstPtr& msg )
 {
+
+	// acc_local = std::vector<double>(num_imu * 3, 0.0);
 	int j = 0;
-	for (int i = 0; i < num_imu; ++i)
+	int d = 0;
+	for (int i = 0; i < msg->m.size(); ++i)
 	{
-		imu_ids[i] = msg->m[i].id;
-		acc[j] = msg->m[i].x;
-		acc[j + 1] = msg->m[i].y;
-		acc[j + 2] = msg->m[i].z;
+		if ( msg->m[i].id == 15) // filter imu's
+			continue;
+		double spike_detector= msg->m[i].x*msg->m[i].y*msg->m[i].z;
+		if(spike_detector != 0)
+		{
+			imu_ids[d] = msg->m[i].id;
+			acc[j] = msg->m[i].x;
+			acc[j + 1] = msg->m[i].y;
+			acc[j + 2] = msg->m[i].z;
+		}
 		j += 3;
+		++d;
 	}
+
+	// acc = acc_loca;
 }
 
 void cb_gyro(const qb_interface::inertialSensorArray::ConstPtr& msg )
 {
 	int j = 0;
-	for (int i = 0; i < num_imu; ++i)
+	int d = 0;
+	for (int i = 0; i < msg->m.size(); ++i)
 	{
+		if ( msg->m[i].id == 15) // filter imu's
+			continue;
 		gyro[j] = msg->m[i].x;
 		gyro[j + 1] = msg->m[i].y;
 		gyro[j + 2] = msg->m[i].z;
 		j += 3;
+		d++;
 	}
 }
 
@@ -203,8 +221,18 @@ void publish(ros::Time t)
 		imu.angular_velocity.z = gyro_relative(2) - gyro[num_imu * 3 - 1];
 		j += 3;
 
+		output_file << imu.id << " "
+		            << imu.linear_acceleration.x << " "
+		            << imu.linear_acceleration.y << " "
+		            << imu.linear_acceleration.z << " "
+		            << imu.angular_velocity.x << " "
+		            << imu.angular_velocity.y << " "
+		            << imu.angular_velocity.z << " ";
+
 		imus.data.push_back(imu);
 	}
+
+	output_file << std::endl;
 
 	imus.header.stamp = t;
 	imus.header.frame_id = std::string("frame_ee_glove");
@@ -236,19 +264,39 @@ int main(int argc, char **argv)
 	QL_vector = std::vector<Eigen::Vector4d>(5, Eigen::Vector4d::Zero());
 
 
+	double t_calibration(5.0);
+
 	for (int i = 0; i < num_imu - 1; ++i)
 	{
 		QL_vector[i](0) = 1.0;
 	}
 
-	for (double i = 0; i < 1.0; i = i + 1.0 / f)
+
+	for (double i = 0; i < t_calibration; i = i + 1.0 / f)
 	{
 		ros::spinOnce();
 		// Eigen::MatrixXd All_Q = Eigen::MatrixXd::Zero(4, num_imu-1);
 		for (int j = 0; j < num_imu - 1; ++j)
 		{
 			// All_Q.block<4,1>(0,j) = QL_vector[j];
-			QL_vector[j] = MadgwickFilter(j, num_imu-1, QL_vector[j]);
+			QL_vector[j] = MadgwickFilter(j, num_imu - 1, QL_vector[j]);
+			// std::cout << "Q( " << j << "): " << QL_vector[j] << " " << std::endl;
+		}
+		// std::cout << i << std::endl <<  All_Q << std::endl << std::endl << std::endl;
+		publish( ros::Time::now() );
+		r.sleep();
+	}
+	std::cout << "Change hand position" << std::endl;
+	getchar();
+
+	for (double i = 0; i < t_calibration; i = i + 1.0 / f)
+	{
+		ros::spinOnce();
+		// Eigen::MatrixXd All_Q = Eigen::MatrixXd::Zero(4, num_imu-1);
+		for (int j = 0; j < num_imu - 1; ++j)
+		{
+			// All_Q.block<4,1>(0,j) = QL_vector[j];
+			QL_vector[j] = MadgwickFilter(j, num_imu - 1, QL_vector[j]);
 			// std::cout << "Q( " << j << "): " << QL_vector[j] << " " << std::endl;
 		}
 		// std::cout << i << std::endl <<  All_Q << std::endl << std::endl << std::endl;
@@ -256,17 +304,22 @@ int main(int argc, char **argv)
 		r.sleep();
 	}
 
+	std::cout << "Enter to start recording" << std::endl;
 
+	getchar();
+
+	output_file.open("log.txt");
 	while (ros::ok())
 	{
 		for (int j = 0; j < num_imu - 1; ++j)
 		{
-			QL_vector[j] = MadgwickFilter(j, num_imu-1, QL_vector[j]);
+			QL_vector[j] = MadgwickFilter(j, num_imu - 1, QL_vector[j]);
 		}
 		ros::spinOnce();
 		publish( ros::Time::now() );
 		r.sleep();
 	}
 
+	output_file.close();
 	return 0;
 }

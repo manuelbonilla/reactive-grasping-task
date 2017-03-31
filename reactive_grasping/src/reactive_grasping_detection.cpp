@@ -116,6 +116,7 @@ ReactiveGraspingDetection::ReactiveGraspingDetection() {
 
   // subscribes to the sensorized Glove topic
   accel_map_publisher_ = node_handle_.advertise<std_msgs::Float64MultiArray>(accel_map_topic_name_, topic_queue_length_);
+  pub_espen = node_handle_.advertise<std_msgs::Float64>("/espen", 1000);
   glove_subscriber_ = node_handle_.subscribe(glove_topic_name_, topic_queue_length_,
                                              &ReactiveGraspingDetection::gloveMessageCallback, this);
   ROS_INFO_STREAM("[Detection] Node is retrieving Glove messages... (<ctrl+c> to terminate)");
@@ -527,6 +528,13 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
       contact_detected_ = true;
       hand_closed_ = !hand_closed_;
       ROS_INFO_STREAM("[Detection::processData] Contact Detected on IMU " << imu_id);
+
+      /****** publish imu_id*****/
+
+      std_msgs::Float64 msg_espen;
+      msg_espen.data = (float)imu_id;
+      pub_espen.publish(msg_espen);
+
       // concatenates the samples in a vector of length equals 3 x 'num_imus_' x 'window_size_'
       std::vector<double> accelerations_concatenated = toVector(accel_filt_);
       // normalizes the vector and scales its 'tails' down (emphasizes only peaks of imu with id = 'imu_id')
@@ -575,6 +583,10 @@ void ReactiveGraspingDetection::processData(std::vector<reactive_grasping::Glove
       }
     }
   }
+
+
+/*publish 0's*/
+
 }
 
 void ReactiveGraspingDetection::pushBackNewSample(const std::vector<reactive_grasping::GloveIMU> &new_sample) {
