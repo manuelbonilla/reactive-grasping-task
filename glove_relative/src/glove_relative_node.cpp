@@ -6,7 +6,7 @@
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/SVD>
 
-ros::Publisher pub_glove;
+ros::Publisher pub_glove, pub_glove_local;
 ros::Subscriber sub_acc, sub_gyro;
 std::vector<double> acc, gyro, acc_relative, gyro_relative;
 std::vector<int> imu_ids;
@@ -83,7 +83,7 @@ Eigen::Vector4d MadgwickFilter(int P, int N, Eigen::Vector4d qL)
 	aN(1)  = acc[N * 3 + 1];
 	aN(2)  = acc[N * 3 + 2];
 
-	if((aP.norm() ==0) || (aN.norm() == 0.0))
+	if ((aP.norm() == 0) || (aN.norm() == 0.0))
 		return qL;
 
 	// std::cout << "P " << P << "  ax " << aP(0) << "  ay " << aP(1) << "  az " << aP(2) << std::endl;
@@ -171,13 +171,24 @@ void cb_gyro(const qb_interface::inertialSensorArray::ConstPtr& msg )
 		gyro[j + 2] = msg->m[i].z;
 		j += 3;
 	}
+	j = 0;
+	for (int i = 0; i < num_imu; i++)
+	{
+		if (std::abs(gyro[j]) < 15)  gyro[j] = 0;
+		if (std::abs(gyro[j + 1]) < 15)  gyro[j+1] = 0;
+		if (std::abs(gyro[j + 2] ) < 15)  gyro[j+2] = 0;
+		j += 3;	
+	}
+
+
 }
 
 void publish(ros::Time t)
 {
 	int j = 0;
-	reactive_grasping::GloveIMU imu;
+	reactive_grasping::GloveIMU imu, imu_local;
 	reactive_grasping::GloveIMUArray imus;
+	reactive_grasping::GloveIMUArray imus_local;
 
 
 
@@ -201,15 +212,58 @@ void publish(ros::Time t)
 		imu.angular_velocity.x = gyro_relative(0) - gyro[num_imu * 3 - 3];
 		imu.angular_velocity.y = gyro_relative(1) - gyro[num_imu * 3 - 2];
 		imu.angular_velocity.z = gyro_relative(2) - gyro[num_imu * 3 - 1];
-		j += 3;
 
 		imus.data.push_back(imu);
+
+
+		imu_local.id = imu_ids[i];
+		imu_local.linear_acceleration.x = acc_local(0);
+		imu_local.linear_acceleration.y = acc_local(1);
+		imu_local.linear_acceleration.z = acc_local(2);
+		imu_local.angular_velocity.x = gyro_local(0);
+		imu_local.angular_velocity.y = gyro_local(1);
+		imu_local.angular_velocity.z = gyro_local(2);
+
+		imus_local.data.push_back(imu_local);
+
+		j += 3;
+
+
 	}
 
 	imus.header.stamp = t;
 	imus.header.frame_id = std::string("frame_ee_glove");
 	imus.acquisition_time = ros::Duration();
 	pub_glove.publish(imus);
+	pub_glove_local.publish(imus_local);
+}
+
+Eigen::Vector3d quat2Angles(Eigen::Vector4d Q_in)
+{
+	Eigen::Vector3d Angles_out;
+	// pitch singularity
+	// Angles_out(0) = atan2(2*Q_in(1)*Q_in(2) - 2*Q_in(0)*Q_in(3), 2*Q_in(0)*Q_in(0) + 2*Q_in(1)*Q_in(1)-1); //YAW
+	// Angles_out(1) = -asin(2*Q_in(1)*Q_in(3) + 2*Q_in(0)*Q_in(2)); //PITCH
+	// Angles_out(2) = atan2(2*Q_in(2)*Q_in(3) - 2*Q_in(0)*Q_in(1), 2*Q_in(0)*Q_in(0) + 2*Q_in(3)*Q_in(3)-1); // ROLL
+
+	// yaw singularity
+	float w = Q_in(0);
+	float x = Q_in(1);
+	float y = Q_in(2);
+	float z = Q_in(3);
+	Angles_out(0) =  asin(2 * x * y + 2 * z * w); //YAW
+	Angles_out(2) = - atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z); //PITCH
+	Angles_out(1) = - atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z); // ROLL
+	return Angles_out;
+}
+
+void print_angles(std::vector<Eigen::Vector4d> QL_vector)
+{
+	std::cout << "Imu 1: " <<  quat2Angles(QL_vector[0]).transpose() * 180 / M_PI << std::endl;
+	std::cout << "Imu 2: " <<  quat2Angles(QL_vector[1]).transpose() * 180 / M_PI << std::endl;
+	std::cout << "Imu 3: " <<  quat2Angles(QL_vector[2]).transpose() * 180 / M_PI << std::endl;
+	std::cout << "Imu 4: " <<  quat2Angles(QL_vector[3]).transpose() * 180 / M_PI << std::endl;
+	std::cout << "Imu 5: " <<  quat2Angles(QL_vector[4]).transpose() * 180 / M_PI << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -220,12 +274,13 @@ int main(int argc, char **argv)
 	float f;
 	std::string acc_topic_name, gyro_topic_name, glove_topic_name;
 	n.param<int>("n_imo", num_imu, 6);
-	n.param<float>("speed_rate", f, 100);
+	n.param<float>("speed_rate", f, 80);
 	n.param<std::string>("acc_topic", acc_topic_name, "/qb_class_imu/acc");
 	n.param<std::string>("gyro_topic", gyro_topic_name, "/qb_class_imu/gyro");
 	n.param<std::string>("glove_topic", glove_topic_name, "/glove_data");
 
 	pub_glove = n.advertise<reactive_grasping::GloveIMUArray>(glove_topic_name, 1);
+	pub_glove_local = n.advertise<reactive_grasping::GloveIMUArray>(glove_topic_name + std::string("_local"), 1);
 	sub_acc = n.subscribe(acc_topic_name, 1, cb_acc);
 	sub_gyro = n.subscribe(gyro_topic_name, 1, cb_gyro);
 
@@ -233,22 +288,16 @@ int main(int argc, char **argv)
 	gyro = std::vector<double>(num_imu * 3, 0.0);
 	imu_ids = std::vector<int>(num_imu, 0);
 	ros::Rate r(f);
-	QL_vector = std::vector<Eigen::Vector4d>(5, Eigen::Vector4d::Zero());
+	QL_vector = std::vector<Eigen::Vector4d>(5, Eigen::Vector4d(1.0, 0., 0., 0.));
 
-
-	for (int i = 0; i < num_imu - 1; ++i)
-	{
-		QL_vector[i](0) = 1.0;
-	}
-
-	for (double i = 0; i < 1.0; i = i + 1.0 / f)
+	for (double i = 0.; i < 30.; i = i + 1.0 / f)
 	{
 		ros::spinOnce();
 		// Eigen::MatrixXd All_Q = Eigen::MatrixXd::Zero(4, num_imu-1);
 		for (int j = 0; j < num_imu - 1; ++j)
 		{
 			// All_Q.block<4,1>(0,j) = QL_vector[j];
-			QL_vector[j] = MadgwickFilter(j, num_imu-1, QL_vector[j]);
+			QL_vector[j] = MadgwickFilter(j, num_imu - 1, QL_vector[j]);
 			// std::cout << "Q( " << j << "): " << QL_vector[j] << " " << std::endl;
 		}
 		// std::cout << i << std::endl <<  All_Q << std::endl << std::endl << std::endl;
@@ -256,12 +305,16 @@ int main(int argc, char **argv)
 		r.sleep();
 	}
 
+	print_angles( QL_vector );
+	getchar();
+
+
 
 	while (ros::ok())
 	{
 		for (int j = 0; j < num_imu - 1; ++j)
 		{
-			QL_vector[j] = MadgwickFilter(j, num_imu-1, QL_vector[j]);
+			QL_vector[j] = MadgwickFilter(j, num_imu - 1, QL_vector[j]);
 		}
 		ros::spinOnce();
 		publish( ros::Time::now() );
